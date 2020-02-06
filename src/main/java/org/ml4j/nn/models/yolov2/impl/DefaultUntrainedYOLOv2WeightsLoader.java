@@ -15,8 +15,16 @@
  */
 package org.ml4j.nn.models.yolov2.impl;
 
+import java.util.Arrays;
+
 import org.ml4j.Matrix;
 import org.ml4j.nn.architectures.yolo.yolov2.YOLOv2WeightsLoader;
+import org.ml4j.nn.axons.BiasMatrix;
+import org.ml4j.nn.axons.WeightsFormatImpl;
+import org.ml4j.nn.axons.WeightsMatrix;
+import org.ml4j.nn.axons.WeightsMatrixImpl;
+import org.ml4j.nn.axons.WeightsMatrixOrientation;
+import org.ml4j.nn.neurons.format.features.Dimension;
 
 /**
  * @author Michael Lavelle
@@ -24,13 +32,24 @@ import org.ml4j.nn.architectures.yolo.yolov2.YOLOv2WeightsLoader;
 public class DefaultUntrainedYOLOv2WeightsLoader implements YOLOv2WeightsLoader {
 
 	@Override
-	public Matrix getConvolutionalLayerWeights(String name, int width, int height, int inputDepth, int outputDepth) {
-		return null;
+	public WeightsMatrix getConvolutionalLayerWeights(String name, int width, int height, int inputDepth, int outputDepth) {
+		if (width == 1 && height == 1) {
+			return new WeightsMatrixImpl(null,
+					new WeightsFormatImpl(Arrays.asList(Dimension.INPUT_DEPTH), 
+							Arrays.asList(Dimension.OUTPUT_DEPTH), WeightsMatrixOrientation.ROWS_SPAN_OUTPUT_DIMENSIONS));
+		} else {
+			return new WeightsMatrixImpl(null,
+					new WeightsFormatImpl(Arrays.asList(Dimension.INPUT_DEPTH, Dimension.FILTER_HEIGHT, Dimension.FILTER_WIDTH), 
+							Arrays.asList(Dimension.OUTPUT_DEPTH), WeightsMatrixOrientation.ROWS_SPAN_OUTPUT_DIMENSIONS));
+		}
 	}
 
 	@Override
-	public Matrix getBatchNormLayerWeights(String name, int inputDepth) {
-		return null;
+	public WeightsMatrix getBatchNormLayerWeights(String name, int inputDepth) {
+		return new WeightsMatrixImpl(null,
+				new WeightsFormatImpl(Arrays.asList(
+						Dimension.INPUT_DEPTH), 
+						Arrays.asList(Dimension.OUTPUT_FEATURE), WeightsMatrixOrientation.ROWS_SPAN_OUTPUT_DIMENSIONS));
 	}
 
 	@Override
@@ -44,12 +63,12 @@ public class DefaultUntrainedYOLOv2WeightsLoader implements YOLOv2WeightsLoader 
 	}
 
 	@Override
-	public Matrix getBatchNormLayerBias(String name, int inputDepth) {
+	public BiasMatrix getBatchNormLayerBias(String name, int inputDepth) {
 		return null;
 	}
 
 	@Override
-	public Matrix getConvolutionalLayerBiases(String name, int outputDepth) {
+	public BiasMatrix getConvolutionalLayerBiases(String name, int outputDepth) {
 		return null;
 	}
 
