@@ -22,10 +22,19 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.io.Serializable;
+import java.util.Arrays;
 
 import org.ml4j.Matrix;
 import org.ml4j.MatrixFactory;
 import org.ml4j.nn.architectures.yolo.yolov2.YOLOv2WeightsLoader;
+import org.ml4j.nn.axons.BiasFormatImpl;
+import org.ml4j.nn.axons.BiasMatrix;
+import org.ml4j.nn.axons.BiasMatrixImpl;
+import org.ml4j.nn.axons.WeightsFormatImpl;
+import org.ml4j.nn.axons.WeightsMatrix;
+import org.ml4j.nn.axons.WeightsMatrixImpl;
+import org.ml4j.nn.axons.WeightsMatrixOrientation;
+import org.ml4j.nn.neurons.format.features.Dimension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +71,7 @@ public class PretrainedYOLOv2WeightsLoaderImpl implements YOLOv2WeightsLoader {
 		}
 	}
 
-	public Matrix getConvolutionalLayerWeights(String name, int width, int height, int inputDepth, int outputDepth) {
+	public WeightsMatrix getConvolutionalLayerWeights(String name, int width, int height, int inputDepth, int outputDepth) {
 		float[] weights = deserializeWeights(name);
 		// is height, width, inputDepth * outputDepth
 		// want outputDepth * inputDepth, height, width.
@@ -89,15 +98,24 @@ public class PretrainedYOLOv2WeightsLoaderImpl implements YOLOv2WeightsLoader {
 			outputWeights.asEditableMatrix().putRow(r, rowData2);
 			
 		}
-	
-	
-		
-		return weightsMatrix1;
+		boolean oneByOneConvolution = width == 1 && height == 1;
+		if (oneByOneConvolution) {
+			return new WeightsMatrixImpl(weightsMatrix1,
+					new WeightsFormatImpl(Arrays.asList(Dimension.INPUT_DEPTH), 
+							Arrays.asList(Dimension.OUTPUT_DEPTH), WeightsMatrixOrientation.ROWS_SPAN_OUTPUT_DIMENSIONS));
+		} else {
+			return new WeightsMatrixImpl(weightsMatrix1,
+					new WeightsFormatImpl(Arrays.asList(Dimension.INPUT_DEPTH, Dimension.FILTER_HEIGHT, Dimension.FILTER_WIDTH), 
+							Arrays.asList(Dimension.OUTPUT_DEPTH), WeightsMatrixOrientation.ROWS_SPAN_OUTPUT_DIMENSIONS));
+		}
 	}
 
-	public Matrix getBatchNormLayerWeights(String name, int inputDepth) {
+	public WeightsMatrix getBatchNormLayerWeights(String name, int inputDepth) {
 		float[] weights = deserializeWeights(name);
-		return matrixFactory.createMatrixFromRowsByRowsArray(inputDepth, 1, weights);
+		return new WeightsMatrixImpl(matrixFactory.createMatrixFromRowsByRowsArray(inputDepth, 1, weights),
+				new WeightsFormatImpl(Arrays.asList(
+						Dimension.INPUT_DEPTH), 
+						Arrays.asList(Dimension.OUTPUT_FEATURE), WeightsMatrixOrientation.ROWS_SPAN_OUTPUT_DIMENSIONS));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -134,14 +152,16 @@ public class PretrainedYOLOv2WeightsLoaderImpl implements YOLOv2WeightsLoader {
 	}
 
 	@Override
-	public Matrix getBatchNormLayerBias(String name, int inputDepth) {
+	public BiasMatrix getBatchNormLayerBias(String name, int inputDepth) {
 		float[] weights = deserializeWeights(name);
-		return matrixFactory.createMatrixFromRowsByRowsArray(inputDepth, 1, weights);
+		return new BiasMatrixImpl(matrixFactory.createMatrixFromRowsByRowsArray(inputDepth, 1, weights),
+				new BiasFormatImpl(Arrays.asList(Dimension.INPUT_DEPTH),
+						Arrays.asList(Dimension.OUTPUT_DEPTH), WeightsMatrixOrientation.ROWS_SPAN_OUTPUT_DIMENSIONS));
 	}
 
 	@Override
-	public Matrix getConvolutionalLayerBiases(String name, int outputDepth) {
+	public BiasMatrix getConvolutionalLayerBiases(String name, int outputDepth) {
 		float[] weights = deserializeWeights(name);
-		return matrixFactory.createMatrixFromRowsByRowsArray(outputDepth, 1, weights);
+		return new BiasMatrixImpl(matrixFactory.createMatrixFromRowsByRowsArray(outputDepth, 1, weights));
 	}
 }
