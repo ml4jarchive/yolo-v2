@@ -43,6 +43,11 @@ import org.slf4j.LoggerFactory;
  */
 public class PretrainedYOLOv2WeightsLoaderImpl implements YOLOv2WeightsLoader {
 
+	/**
+	 * Default serialization id.
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultYOLOv2Factory.class);
 
 	private MatrixFactory matrixFactory;

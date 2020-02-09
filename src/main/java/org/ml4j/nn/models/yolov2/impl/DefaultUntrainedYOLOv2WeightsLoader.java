@@ -31,6 +31,11 @@ import org.ml4j.nn.neurons.format.features.Dimension;
  */
 public class DefaultUntrainedYOLOv2WeightsLoader implements YOLOv2WeightsLoader {
 
+	/**
+	 * Default serialization id.
+	 */
+	private static final long serialVersionUID = 1L;
+
 	@Override
 	public WeightsMatrix getConvolutionalLayerWeights(String name, int width, int height, int inputDepth, int outputDepth) {
 		if (width == 1 && height == 1) {
