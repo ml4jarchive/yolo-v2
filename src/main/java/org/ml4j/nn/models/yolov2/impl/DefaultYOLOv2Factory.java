@@ -87,7 +87,7 @@ public class DefaultYOLOv2Factory implements YOLOv2Factory {
 		
 		return sessionFactory
 			.createSession(trainingContext.getDirectedComponentsContext())
-			.buildNeuralNetwork("yoloV2", yoloV2Definition.getInputNeurons())
+			.buildSupervised3DNeuralNetwork("yoloV2", yoloV2Definition.getInputNeurons())
 			.withComponentGraphDefinition(yoloV2Definition)
 			.build();
 	}
