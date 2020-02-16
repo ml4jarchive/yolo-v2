@@ -19,18 +19,12 @@ import java.io.IOException;
 
 import org.ml4j.MatrixFactory;
 import org.ml4j.nn.FeedForwardNeuralNetworkContext;
-import org.ml4j.nn.activationfunctions.ActivationFunctionBaseType;
-import org.ml4j.nn.activationfunctions.ActivationFunctionProperties;
-import org.ml4j.nn.activationfunctions.ActivationFunctionType;
 import org.ml4j.nn.architectures.yolo.yolov2.YOLOv2Definition;
 import org.ml4j.nn.architectures.yolo.yolov2.YOLOv2WeightsLoader;
-import org.ml4j.nn.components.builders.componentsgraph.InitialComponents3DGraphBuilder;
-import org.ml4j.nn.components.onetone.DefaultChainableDirectedComponent;
 import org.ml4j.nn.models.yolov2.YOLOv2Factory;
 import org.ml4j.nn.models.yolov2.YOLOv2Labels;
-import org.ml4j.nn.sessions.factories.SessionFactory;
+import org.ml4j.nn.sessions.factories.DefaultSessionFactory;
 import org.ml4j.nn.supervised.SupervisedFeedForwardNeuralNetwork;
-import org.ml4j.nn.supervised.SupervisedFeedForwardNeuralNetworkFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +36,7 @@ public class DefaultYOLOv2Factory implements YOLOv2Factory {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultYOLOv2Factory.class);
 
-	private SessionFactory<DefaultChainableDirectedComponent<?, ?>> sessionFactory;
-
-	private SupervisedFeedForwardNeuralNetworkFactory supervisedFeedForwardNeuralNetworkFactory;
+	private DefaultSessionFactory sessionFactory;
 
 	private YOLOv2WeightsLoader weightsLoader;
 
@@ -59,13 +51,13 @@ public class DefaultYOLOv2Factory implements YOLOv2Factory {
 	 * @param classLoader
 	 * @throws IOException
 	 */
-	public DefaultYOLOv2Factory(SessionFactory<DefaultChainableDirectedComponent<?, ?>> sessionFactory,
+	public DefaultYOLOv2Factory(DefaultSessionFactory sessionFactory,
 			MatrixFactory matrixFactory,
-			SupervisedFeedForwardNeuralNetworkFactory supervisedFeedForwardNeuralNetworkFactory,
 			ClassLoader classLoader) throws IOException {
-		this(sessionFactory, supervisedFeedForwardNeuralNetworkFactory,
+		this(sessionFactory,
 				new PretrainedYOLOv2WeightsLoaderImpl(classLoader, matrixFactory),
 				new DefaultYOLOv2Labels(classLoader));
+		
 	}
 
 	/**
@@ -77,11 +69,9 @@ public class DefaultYOLOv2Factory implements YOLOv2Factory {
 	 * @param weightsLoader
 	 * @param labels
 	 */
-	public DefaultYOLOv2Factory(SessionFactory<DefaultChainableDirectedComponent<?, ?>> sessionFactory,
-			SupervisedFeedForwardNeuralNetworkFactory supervisedFeedForwardNeuralNetworkFactory,
+	public DefaultYOLOv2Factory(DefaultSessionFactory sessionFactory,
 			YOLOv2WeightsLoader weightsLoader, YOLOv2Labels labels) {
 		this.sessionFactory = sessionFactory;
-		this.supervisedFeedForwardNeuralNetworkFactory = supervisedFeedForwardNeuralNetworkFactory;
 		this.weightsLoader = weightsLoader;
 		this.labels = labels;
 	}
@@ -93,19 +83,13 @@ public class DefaultYOLOv2Factory implements YOLOv2Factory {
 		LOGGER.info("Creating Yolo V2 Network...");
 
 		// Create a YOLOv2Definition from neural-network-architectures, initialising with the weights loader.
-		YOLOv2Definition inceptionV4Definition = new YOLOv2Definition(weightsLoader);
-
-		// Create a graph builder for the YOLOv2Definition and Training Context.
-		// Add a linear activation function, as NeuralNetwork instances must end with an activation function.
-		InitialComponents3DGraphBuilder<DefaultChainableDirectedComponent<?, ?>> graphBuilder = sessionFactory
-				.createSession(trainingContext.getDirectedComponentsContext()).buildComponentGraph()
-				.startWith(inceptionV4Definition).withActivationFunction("output", 
-						ActivationFunctionType.getBaseType(ActivationFunctionBaseType.LINEAR), new ActivationFunctionProperties());
-
-		// Create the component graph from the definition and graph builder, and wrap
-		// with a supervised feed forward neural network.
-		return supervisedFeedForwardNeuralNetworkFactory
-				.createSupervisedFeedForwardNeuralNetwork("inceptionv4_network", graphBuilder.getComponents());
+		YOLOv2Definition yoloV2Definition = new YOLOv2Definition(weightsLoader);
+		
+		return sessionFactory
+			.createSession(trainingContext.getDirectedComponentsContext())
+			.buildNeuralNetwork("yoloV2", yoloV2Definition.getInputNeurons())
+			.withComponentGraphDefinition(yoloV2Definition)
+			.build();
 	}
 
 	@Override
