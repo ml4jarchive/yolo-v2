@@ -21,7 +21,6 @@ import org.ml4j.MatrixFactory;
 import org.ml4j.nn.FeedForwardNeuralNetworkContext;
 import org.ml4j.nn.architectures.yolo.yolov2.YOLOv2Definition;
 import org.ml4j.nn.architectures.yolo.yolov2.YOLOv2WeightsLoader;
-import org.ml4j.nn.components.onetone.DefaultChainableDirectedComponent;
 import org.ml4j.nn.models.yolov2.YOLOv2Factory;
 import org.ml4j.nn.models.yolov2.YOLOv2Labels;
 import org.ml4j.nn.sessions.factories.DefaultSessionFactory;
