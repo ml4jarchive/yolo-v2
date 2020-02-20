@@ -28,13 +28,20 @@ import org.ml4j.Matrix;
 import org.ml4j.MatrixFactory;
 import org.ml4j.nn.architectures.yolo.yolov2.YOLOv2WeightsLoader;
 import org.ml4j.nn.axons.BiasFormatImpl;
-import org.ml4j.nn.axons.BiasMatrix;
-import org.ml4j.nn.axons.BiasMatrixImpl;
+import org.ml4j.nn.axons.BiasVector;
+import org.ml4j.nn.axons.BiasVectorImpl;
+import org.ml4j.nn.axons.FeaturesVector;
+import org.ml4j.nn.axons.FeaturesVectorFormatImpl;
+import org.ml4j.nn.axons.FeaturesVectorImpl;
+import org.ml4j.nn.axons.FeaturesVectorOrientation;
 import org.ml4j.nn.axons.WeightsFormatImpl;
 import org.ml4j.nn.axons.WeightsMatrix;
 import org.ml4j.nn.axons.WeightsMatrixImpl;
 import org.ml4j.nn.axons.WeightsMatrixOrientation;
+import org.ml4j.nn.axons.WeightsVector;
+import org.ml4j.nn.axons.WeightsVectorImpl;
 import org.ml4j.nn.neurons.format.features.Dimension;
+import org.ml4j.nn.neurons.format.features.DimensionScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,12 +122,11 @@ public class PretrainedYOLOv2WeightsLoaderImpl implements YOLOv2WeightsLoader {
 		}
 	}
 
-	public WeightsMatrix getBatchNormLayerWeights(String name, int inputDepth) {
+	public WeightsVector getBatchNormLayerGamma(String name, int outputDepth) {
 		float[] weights = deserializeWeights(name);
-		return new WeightsMatrixImpl(matrixFactory.createMatrixFromRowsByRowsArray(inputDepth, 1, weights),
-				new WeightsFormatImpl(Arrays.asList(
-						Dimension.INPUT_DEPTH), 
-						Arrays.asList(Dimension.OUTPUT_FEATURE), WeightsMatrixOrientation.ROWS_SPAN_OUTPUT_DIMENSIONS));
+		return new WeightsVectorImpl(matrixFactory.createMatrixFromRowsByRowsArray(outputDepth, 1, weights),
+				new FeaturesVectorFormatImpl(Arrays.asList(Dimension.OUTPUT_DEPTH), FeaturesVectorOrientation.COLUMN_VECTOR,
+						DimensionScope.OUTPUT));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -145,28 +151,32 @@ public class PretrainedYOLOv2WeightsLoaderImpl implements YOLOv2WeightsLoader {
 	}
 
 	@Override
-	public Matrix getBatchNormLayerMovingVariance(String name, int inputDepth) {
+	public FeaturesVector getBatchNormLayerMovingVariance(String name, int outputDepth) {
 		float[] weights = deserializeWeights(name);
-		return matrixFactory.createMatrixFromRowsByRowsArray(inputDepth, 1, weights);
+		return new FeaturesVectorImpl( matrixFactory.createMatrixFromRowsByRowsArray(outputDepth, 1, weights),
+				new FeaturesVectorFormatImpl(Arrays.asList(Dimension.OUTPUT_DEPTH), FeaturesVectorOrientation.COLUMN_VECTOR,
+						DimensionScope.OUTPUT));
 	}
 
 	@Override
-	public Matrix getBatchNormLayerMovingMean(String name, int inputDepth) {
+	public FeaturesVector getBatchNormLayerMovingMean(String name, int outputDepth) {
 		float[] weights = deserializeWeights(name);
-		return matrixFactory.createMatrixFromRowsByRowsArray(inputDepth, 1, weights);
+		return new FeaturesVectorImpl( matrixFactory.createMatrixFromRowsByRowsArray(outputDepth, 1, weights),
+				new FeaturesVectorFormatImpl(Arrays.asList(Dimension.OUTPUT_DEPTH), FeaturesVectorOrientation.COLUMN_VECTOR,
+						DimensionScope.OUTPUT));
 	}
 
 	@Override
-	public BiasMatrix getBatchNormLayerBias(String name, int inputDepth) {
+	public BiasVector getBatchNormLayerBeta(String name, int outputDepth) {
 		float[] weights = deserializeWeights(name);
-		return new BiasMatrixImpl(matrixFactory.createMatrixFromRowsByRowsArray(inputDepth, 1, weights),
-				new BiasFormatImpl(Arrays.asList(Dimension.INPUT_DEPTH),
-						Arrays.asList(Dimension.OUTPUT_DEPTH), WeightsMatrixOrientation.ROWS_SPAN_OUTPUT_DIMENSIONS));
+		return new BiasVectorImpl(matrixFactory.createMatrixFromRowsByRowsArray(outputDepth, 1, weights),
+				new BiasFormatImpl(Dimension.OUTPUT_DEPTH, FeaturesVectorOrientation.COLUMN_VECTOR));
 	}
 
 	@Override
-	public BiasMatrix getConvolutionalLayerBiases(String name, int outputDepth) {
+	public BiasVector getConvolutionalLayerBiases(String name, int outputDepth) {
 		float[] weights = deserializeWeights(name);
-		return new BiasMatrixImpl(matrixFactory.createMatrixFromRowsByRowsArray(outputDepth, 1, weights));
+		return new BiasVectorImpl(matrixFactory.createMatrixFromRowsByRowsArray(outputDepth, 1, weights),
+				new BiasFormatImpl(Dimension.OUTPUT_DEPTH, FeaturesVectorOrientation.COLUMN_VECTOR));
 	}
 }

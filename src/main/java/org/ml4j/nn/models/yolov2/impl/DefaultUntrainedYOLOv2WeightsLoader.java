@@ -17,14 +17,21 @@ package org.ml4j.nn.models.yolov2.impl;
 
 import java.util.Arrays;
 
-import org.ml4j.Matrix;
 import org.ml4j.nn.architectures.yolo.yolov2.YOLOv2WeightsLoader;
-import org.ml4j.nn.axons.BiasMatrix;
+import org.ml4j.nn.axons.BiasVector;
+import org.ml4j.nn.axons.BiasVectorImpl;
+import org.ml4j.nn.axons.FeaturesVector;
+import org.ml4j.nn.axons.FeaturesVectorFormatImpl;
+import org.ml4j.nn.axons.FeaturesVectorImpl;
+import org.ml4j.nn.axons.FeaturesVectorOrientation;
 import org.ml4j.nn.axons.WeightsFormatImpl;
 import org.ml4j.nn.axons.WeightsMatrix;
 import org.ml4j.nn.axons.WeightsMatrixImpl;
 import org.ml4j.nn.axons.WeightsMatrixOrientation;
+import org.ml4j.nn.axons.WeightsVector;
+import org.ml4j.nn.axons.WeightsVectorImpl;
 import org.ml4j.nn.neurons.format.features.Dimension;
+import org.ml4j.nn.neurons.format.features.DimensionScope;
 
 /**
  * @author Michael Lavelle
@@ -50,31 +57,34 @@ public class DefaultUntrainedYOLOv2WeightsLoader implements YOLOv2WeightsLoader 
 	}
 
 	@Override
-	public WeightsMatrix getBatchNormLayerWeights(String name, int inputDepth) {
-		return new WeightsMatrixImpl(null,
-				new WeightsFormatImpl(Arrays.asList(
-						Dimension.INPUT_DEPTH), 
-						Arrays.asList(Dimension.OUTPUT_FEATURE), WeightsMatrixOrientation.ROWS_SPAN_OUTPUT_DIMENSIONS));
+	public WeightsVector getBatchNormLayerGamma(String name, int inputDepth) {
+		return new WeightsVectorImpl(null,
+				new FeaturesVectorFormatImpl(Arrays.asList(Dimension.OUTPUT_DEPTH),
+						FeaturesVectorOrientation.COLUMN_VECTOR, DimensionScope.OUTPUT));
 	}
 
 	@Override
-	public Matrix getBatchNormLayerMovingVariance(String name, int inputDepth) {
-		return null;
+	public FeaturesVector getBatchNormLayerMovingVariance(String name, int inputDepth) {
+		return new FeaturesVectorImpl(null, new FeaturesVectorFormatImpl(Arrays.asList(Dimension.OUTPUT_DEPTH),
+				FeaturesVectorOrientation.COLUMN_VECTOR, DimensionScope.OUTPUT));
 	}
 
 	@Override
-	public Matrix getBatchNormLayerMovingMean(String name, int inputDepth) {
-		return null;
+	public FeaturesVector getBatchNormLayerMovingMean(String name, int inputDepth) {
+		return new FeaturesVectorImpl(null, new FeaturesVectorFormatImpl(Arrays.asList(Dimension.OUTPUT_DEPTH),
+				FeaturesVectorOrientation.COLUMN_VECTOR, DimensionScope.OUTPUT));
 	}
 
 	@Override
-	public BiasMatrix getBatchNormLayerBias(String name, int inputDepth) {
-		return null;
+	public BiasVector getBatchNormLayerBeta(String name, int inputDepth) {
+		return new BiasVectorImpl(null, new FeaturesVectorFormatImpl(Arrays.asList(Dimension.OUTPUT_DEPTH),
+				FeaturesVectorOrientation.COLUMN_VECTOR, DimensionScope.OUTPUT));
 	}
 
 	@Override
-	public BiasMatrix getConvolutionalLayerBiases(String name, int outputDepth) {
-		return null;
+	public BiasVector getConvolutionalLayerBiases(String name, int outputDepth) {
+		return new BiasVectorImpl(null, new FeaturesVectorFormatImpl(Arrays.asList(Dimension.OUTPUT_DEPTH),
+				FeaturesVectorOrientation.COLUMN_VECTOR, DimensionScope.OUTPUT));
 	}
 
 }
